@@ -84,7 +84,7 @@ void swapN(int n, card_t deck[DECK_SIZE]) {
 void shuffle(card_t deck[DECK_SIZE]) {
 	swapN(4*DECK_SIZE,deck);
 }
-void hanabi_game_init(std::vector<std::unique_ptr<Player>> &players, hanabi_game_t &game, hanabi_hand_t hands[MAX_PLAYERS], card_t deck[DECK_SIZE]) {
+void hanabi_game_init(hanabi_game_t &game, hanabi_hand_t hands[MAX_PLAYERS], std::vector<std::unique_ptr<Player>> &players, card_t deck[DECK_SIZE]) {
 	static const uint8_t numcount[6] = {0,3,2,2,2,1};
 	
 	// initialize the deck
@@ -222,7 +222,7 @@ int main(int argc, char *argv[]){
 	for(uint8_t i = 0; i < nplayers; ++i) players.push_back(std::make_unique<Player_interactive>());
 	
 	hanabi_game_t game;
-	hanabi_game_init(players, game, hands, deck);
+	hanabi_game_init(game, hands, players, deck);
 	
 	// determine how many turns should occur
 	uint8_t nturns = game.ndeck + game.nplayers;

@@ -40,27 +40,27 @@ void fprinthand(FILE *fp, hanabi_hand_t const *hand, uint8_t handSize) {
 	for(uint8_t i = 0; i < handSize; ++i) { fputc('\t',fp); fprintf(fp,"%d:",i); fprintcard(fp,hand->card[i]); }
 }
 /* print the public data structure */
-void fprintgame(FILE *fp, hanabi_game_t const *game){
+void fprintgame(FILE *fp, hanabi_game_t const &game){
 	fprintf(fp, "Piles:   B G R W Y *\n");
 	fprintf(fp, "         %d %d %d %d %d %d\n",
-		game->pile[CARD_BLUE],
-		game->pile[CARD_GREEN],
-		game->pile[CARD_RED],
-		game->pile[CARD_WHITE],
-		game->pile[CARD_YELLOW],
-		game->pile[CARD_RAINBOW]
+		game.pile[CARD_BLUE],
+		game.pile[CARD_GREEN],
+		game.pile[CARD_RED],
+		game.pile[CARD_WHITE],
+		game.pile[CARD_YELLOW],
+		game.pile[CARD_RAINBOW]
 	);
 	fprintf(fp, "Discard:\n");
 	for(uint8_t i = 0; i < DECK_SIZE; ++i){
-		if(game->discard[i] != 0) {
+		if(game.discard[i] != 0) {
 			fputc(' ',fp);
-			fprintcard(fp,game->discard[i]);
+			fprintcard(fp,game.discard[i]);
 		}
 	}
 	fprintf(fp, "\n");
-	fprintf(fp, "Cards remaining in deck:      %d\n", game->ndeck);
-	fprintf(fp, "Information tokens remaining: %d\n", game->ninfo);
-	fprintf(fp, "Bomb tokens acquired:         %d\n", game->nbomb);
+	fprintf(fp, "Cards remaining in deck:      %d\n", game.ndeck);
+	fprintf(fp, "Information tokens remaining: %d\n", game.ninfo);
+	fprintf(fp, "Bomb tokens acquired:         %d\n", game.nbomb);
 }
 
 /*static int rand_int(int n){
@@ -84,17 +84,17 @@ void swapN(int n, card_t deck[DECK_SIZE]) {
 void shuffle(card_t deck[DECK_SIZE]) {
 	swapN(4*DECK_SIZE,deck);
 }
-void hanabi_game_init(std::vector<std::unique_ptr<Player>> &players, hanabi_game_t *game, hanabi_hand_t hands[MAX_PLAYERS], card_t deck[DECK_SIZE]) {
+void hanabi_game_init(std::vector<std::unique_ptr<Player>> &players, hanabi_game_t &game, hanabi_hand_t hands[MAX_PLAYERS], card_t deck[DECK_SIZE]) {
 	static const uint8_t numcount[6] = {0,3,2,2,2,1};
 	
 	// initialize the deck
-	memset(game, 0, sizeof(hanabi_game_t));
-	game->nplayers = players.size();
-	game->active_player = rand() % game->nplayers;
-	game->ninfo = MAX_INFO_TOKENS;
-	game->nbomb = 0;
-	game->ndeck = DECK_SIZE;
-	game->nDiscard = 0;
+	memset(&game, 0, sizeof(hanabi_game_t));
+	game.nplayers = players.size();
+	game.active_player = rand() % game.nplayers;
+	game.ninfo = MAX_INFO_TOKENS;
+	game.nbomb = 0;
+	game.ndeck = DECK_SIZE;
+	game.nDiscard = 0;
 	card_t *p = &deck[0];
 	for(uint8_t color = 1; color < 7; ++color){
 		for(uint8_t number = 1; number <= 5; ++number){
@@ -108,24 +108,24 @@ void hanabi_game_init(std::vector<std::unique_ptr<Player>> &players, hanabi_game
 	// shuffle
 	shuffle(deck);
 	
-	for(uint8_t i = 0; i < game->ndeck; ++i) { fprintcard(stdout, deck[i]); fputc('\t',stdout); } fputc('\n', stdout);
+	for(uint8_t i = 0; i < game.ndeck; ++i) { fprintcard(stdout, deck[i]); fputc('\t',stdout); } fputc('\n', stdout);
 	
 	// deal
 	memset(hands,0,MAX_PLAYERS*sizeof(hanabi_hand_t));
-	for(uint8_t count = 0; count < HANDSIZE[game->nplayers]; ++count){
-		for(uint8_t i = 0; i < game->nplayers; ++i){
-			hands[i].card[count] = deck[DECK_SIZE - game->ndeck];
-			game->ndeck--;
+	for(uint8_t count = 0; count < HANDSIZE[game.nplayers]; ++count){
+		for(uint8_t i = 0; i < game.nplayers; ++i){
+			hands[i].card[count] = deck[DECK_SIZE - game.ndeck];
+			game.ndeck--;
 		}
 	}
 
-	for(uint8_t i = 0; i < game->nplayers; ++i) { fprintf(stdout, "%d: ", i); fprinthand(stdout, &hands[i], HANDSIZE[game->nplayers]); fputc('\n', stdout); }
+	for(uint8_t i = 0; i < game.nplayers; ++i) { fprintf(stdout, "%d: ", i); fprinthand(stdout, &hands[i], HANDSIZE[game.nplayers]); fputc('\n', stdout); }
 
 	// Initialize Players to see other's hands
-	for(uint8_t curPlayer = 0; curPlayer < game->nplayers; ++curPlayer) {
+	for(uint8_t curPlayer = 0; curPlayer < game.nplayers; ++curPlayer) {
 		uint8_t i = 0;
-		for(; i < game->nplayers; ++i){
-			players[curPlayer]->others[i] = &hands[(curPlayer + i) % game->nplayers];
+		for(; i < game.nplayers; ++i){
+			players[curPlayer]->others[i] = &hands[(curPlayer + i) % game.nplayers];
 		}
 		for(; i < MAX_PLAYERS; ++i){
 			players[curPlayer]->others[i] = NULL;
@@ -135,52 +135,52 @@ void hanabi_game_init(std::vector<std::unique_ptr<Player>> &players, hanabi_game
 }
 
 // advance the game by one turn
-void hanabi_game_turn(hanabi_game_t *game, hanabi_hand_t hands[MAX_PLAYERS], std::vector<std::unique_ptr<Player>> &players, card_t deck[DECK_SIZE]){
+void hanabi_game_turn(hanabi_game_t &game, hanabi_hand_t hands[MAX_PLAYERS], std::vector<std::unique_ptr<Player>> &players, card_t deck[DECK_SIZE]){
 	// Ask player to take action
-	action_t action = players[game->active_player]->turn(game);
+	action_t action = players[game.active_player]->turn(game);
 	switch (action.type) {
 		case ACTION_DISCARD:
-			assert(game->ninfo < 8);
-			assert(0 <= action.value && action.value < HANDSIZE[game->nplayers]);
-			game->ninfo++;
-			game->discard[game->nDiscard++] = hands[game->active_player].card[action.value];
-			for(uint8_t i = action.value; i+1 < HANDSIZE[game->nplayers]; ++i) {
-				hands[game->active_player].card[i] = hands[game->active_player].card[i+1];
+			assert(game.ninfo < 8);
+			assert(0 <= action.value && action.value < HANDSIZE[game.nplayers]);
+			game.ninfo++;
+			game.discard[game.nDiscard++] = hands[game.active_player].card[action.value];
+			for(uint8_t i = action.value; i+1 < HANDSIZE[game.nplayers]; ++i) {
+				hands[game.active_player].card[i] = hands[game.active_player].card[i+1];
 			}
-			hands[game->active_player].card[HANDSIZE[game->nplayers]-1] = deck[DECK_SIZE-game->ndeck];
-			game->ndeck--;
+			hands[game.active_player].card[HANDSIZE[game.nplayers]-1] = deck[DECK_SIZE-game.ndeck];
+			game.ndeck--;
 		break;
 		case ACTION_PLAY: {
-			assert(game->ninfo < 8);
-			assert(0 <= action.value && action.value < HANDSIZE[game->nplayers]);
-			card_t card = hands[game->active_player].card[action.value];
-			if(game->pile[getColor(card)]+1 == getNumber(card)){
-				game->pile[getColor(card)]++;
+			assert(game.ninfo < 8);
+			assert(0 <= action.value && action.value < HANDSIZE[game.nplayers]);
+			card_t card = hands[game.active_player].card[action.value];
+			if(game.pile[getColor(card)]+1 == getNumber(card)){
+				game.pile[getColor(card)]++;
 			}else{
-				game->discard[game->nDiscard++] = hands[game->active_player].card[action.value];
-				game->nbomb++;
+				game.discard[game.nDiscard++] = hands[game.active_player].card[action.value];
+				game.nbomb++;
 			}
-			for(uint8_t i = action.value; i+1 < HANDSIZE[game->nplayers]; ++i) {
-				hands[game->active_player].card[i] = hands[game->active_player].card[i+1];
+			for(uint8_t i = action.value; i+1 < HANDSIZE[game.nplayers]; ++i) {
+				hands[game.active_player].card[i] = hands[game.active_player].card[i+1];
 			}
-			hands[game->active_player].card[HANDSIZE[game->nplayers]-1] = deck[DECK_SIZE-game->ndeck];
-			game->ndeck--;
+			hands[game.active_player].card[HANDSIZE[game.nplayers]-1] = deck[DECK_SIZE-game.ndeck];
+			game.ndeck--;
 		}
 		break;
 		case ACTION_INFO: {
 			uint8_t who  = (action.value & INFO_WHO_MASK );
 			bool isColor = (action.value & INFO_TYPE_MASK);
 			uint8_t idx  = (action.value & INFO_IDX_MASK ) >> INFO_IDX_OFFSET;
-			assert(game->ninfo > 0);
-			assert(0 <= who && who < game->nplayers);
+			assert(game.ninfo > 0);
+			assert(0 <= who && who < game.nplayers);
 			assert(
 				(isColor == false && 0 < idx && idx <= MAX_CARD_NUMBER) ||
 				(isColor == true  && 0 < idx && idx <= MAX_COLORS)
 			);
 			// need to appropriately set the knowledge bits
-			who = (who+game->active_player) % game->nplayers;
+			who = (who+game.active_player) % game.nplayers;
 			// note: not enforcing the cant-say-no-cards-matching rule
-			for(uint8_t i = 0; i < HANDSIZE[game->nplayers]; ++i){
+			for(uint8_t i = 0; i < HANDSIZE[game.nplayers]; ++i){
 				if(isColor) {
 					if(getColor(hands[who].card[i]) == (cardColor_t) idx) {
 						hands[who].card[i] |= CARD_COLOR_KNOWN_MASK;
@@ -192,12 +192,12 @@ void hanabi_game_turn(hanabi_game_t *game, hanabi_hand_t hands[MAX_PLAYERS], std
 				}
 			}
 			hanabi_hand_t newHand;
-			for(uint8_t i = 0; i < HANDSIZE[game->nplayers]; ++i) {
+			for(uint8_t i = 0; i < HANDSIZE[game.nplayers]; ++i) {
 				newHand.card[i]  = (hands[who].card[i] & CARD_NUMBER_KNOWN_MASK) ? (hands[who].card[i] & CARD_NUMBER_MASK) : 0;
 				newHand.card[i] |= (hands[who].card[i] & CARD_COLOR_KNOWN_MASK) ? (hands[who].card[i] & CARD_COLOR_MASK) : 0;
 			}
 			players[who]->info(&newHand, action.value);
-			game->ninfo--;
+			game.ninfo--;
 		}
 		break;
 		default:
@@ -205,7 +205,7 @@ void hanabi_game_turn(hanabi_game_t *game, hanabi_hand_t hands[MAX_PLAYERS], std
 		break;
 	}
 	// Advance turn
-	game->active_player = (game->active_player+1)%game->nplayers;
+	game.active_player = (game.active_player+1)%game.nplayers;
 }
 
 int main(int argc, char *argv[]){
@@ -222,11 +222,11 @@ int main(int argc, char *argv[]){
 	for(uint8_t i = 0; i < nplayers; ++i) players.push_back(std::make_unique<Player_interactive>());
 	
 	hanabi_game_t game;
-	hanabi_game_init(players, &game, hands, deck);
+	hanabi_game_init(players, game, hands, deck);
 	
 	// determine how many turns should occur
 	uint8_t nturns = game.ndeck + game.nplayers;
 	for(uint8_t turn = 0; turn < nturns; ++turn){
-		hanabi_game_turn(&game, hands, players, deck);
+		hanabi_game_turn(game, hands, players, deck);
 	}
 }

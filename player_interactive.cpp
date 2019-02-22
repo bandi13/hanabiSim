@@ -14,16 +14,16 @@ uint8_t getrange(uint8_t lo, uint8_t hi){ // ask user for a number between lo an
 	return response;
 }
 
-action_t Player_interactive::turn(hanabi_game_t const *game){
+action_t Player_interactive::turn(hanabi_game_t const &game){
 	fprintf(stdout, "############################################################\n");
 	fprintgame(stdout, game);
 	fprintf(stdout, "Current hand:\n");
-	fprinthand(stdout,&myHand,HANDSIZE[game->nplayers]);
+	fprinthand(stdout,&myHand,HANDSIZE[game.nplayers]);
 	fprintf(stdout, "\n");
 	fprintf(stdout, "Other hands:\n");
-	for(uint8_t j = 1; j < game->nplayers; ++j){
+	for(uint8_t j = 1; j < game.nplayers; ++j){
 		fprintf(stdout,"%d: ", j);
-		fprinthand(stdout, others[j], HANDSIZE[game->nplayers]);
+		fprinthand(stdout, others[j], HANDSIZE[game.nplayers]);
 		fputc('\n',stdout);
 	}
 	fprintf(stdout, "Action (%d=discard,%d=play,%d=info): ",ACTION_DISCARD, ACTION_PLAY, ACTION_INFO);
@@ -38,7 +38,7 @@ action_t Player_interactive::turn(hanabi_game_t const *game){
 			return returnPlay(getrange(0,MAX_HANDSIZE-1));
 		case ACTION_INFO: {
 			fprintf(stdout, "Tell who? ");
-			uint8_t who = getrange(1,game->nplayers-1);
+			uint8_t who = getrange(1,game.nplayers-1);
 			fprintf(stdout, "Number (1) or color (2)? ");
 			uint8_t type = getrange(1,2);
 			fprintf(stdout, "What (1-5 number, %d=B,%d=G,%d=R,%d=W,%d=Y,%d=*)? ", CARD_BLUE, CARD_GREEN, CARD_RED, CARD_WHITE, CARD_YELLOW, CARD_RAINBOW);

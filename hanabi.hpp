@@ -85,7 +85,6 @@ typedef struct hanabi_hand {
 // Utilities to print state of the game
 void fprintcard(FILE *fp, int card);
 void fprinthand(FILE *fp, hanabi_hand_t const *hand, uint8_t handSize);
-/* print the public data structure */
 void fprintgame(FILE *fp, hanabi_game_t const *game);
 
 #endif

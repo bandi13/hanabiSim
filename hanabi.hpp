@@ -2,12 +2,13 @@
 #define HANABI_HPP
 
 #include "stdio.h"
+#include "stdint.h"
 #include "assert.h"
 
 #define countof(arr) sizeof(arr) / sizeof(arr[0])
 
 // number of cards per player based on number of players
-static const char HANDSIZE[] = {-1,-1,-1,5,4,4};
+static const uint8_t HANDSIZE[] = {0,0,0,5,4,4};
 #define MAX_PLAYERS (countof(HANDSIZE)-1)
 #define MAX_HANDSIZE 5
 #define MAX_INFO_TOKENS 8
@@ -55,26 +56,26 @@ typedef enum {
 	CARD_RAINBOW = 6
 } cardColor_t;
 
-typedef char card_t;
+typedef uint8_t card_t;
 #define MAX_COLORS 6
 #define MAX_CARD_NUMBER 5
 
 cardColor_t getColor(card_t card);
 char getColorChar(card_t card);
-char getNumber(card_t card);
+uint8_t getNumber(card_t card);
 char getNumberChar(card_t card);
-card_t getCard(cardColor_t color, char number);
+card_t getCard(cardColor_t color, uint8_t number);
 
 typedef struct hanabi_game {
-	char nplayers; // number of players
-	char active_player; // whose turn it is
-	char ninfo, nbomb, ndeck; // number of information tokens, bomb tokens, and cards remaining in deck
+	uint8_t nplayers; // number of players
+	uint8_t active_player; // whose turn it is
+	uint8_t ninfo, nbomb, ndeck; // number of information tokens, bomb tokens, and cards remaining in deck
 	// cards in completion piles, value is current top card number (default 0)
 	card_t pile[MAX_COLORS+1];
 	// cards in discard in the order they are discarded
 	card_t discard[DECK_SIZE];
 	// number of discarded cards
-	char nDiscard;
+	uint8_t nDiscard;
 } hanabi_game_t;
 
 typedef struct hanabi_hand {

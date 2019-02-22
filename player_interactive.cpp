@@ -3,10 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-int getrange(int lo, int hi){ // ask user for a number between lo and hi, inclusive. keep going until valid
+uint8_t getrange(uint8_t lo, uint8_t hi){ // ask user for a number between lo and hi, inclusive. keep going until valid
 	int response = hi+1;
 	while(!(lo <= response && response <= hi)){
-		int ret = scanf("%d", &response);
+		uint8_t ret = scanf("%d", &response);
 		if(ret <= 0) {
 			fprintf(stdout, "Invalid response\n");
 		}
@@ -14,26 +14,29 @@ int getrange(int lo, int hi){ // ask user for a number between lo and hi, inclus
 	return response;
 }
 
-action_t Player_interactive::turn(const hanabi_public_t *pub, char *action){
+action_t Player_interactive::turn(const hanabi_public_t *pub){
 	fprintf(stdout, "############################################################\n");
 	fprintpub(stdout, pub);
 	fprintf(stdout, "Action (%d=discard,%d=play,%d=info): ",ACTION_DISCARD, ACTION_PLAY, ACTION_INFO);
-	action_t acttype = (action_t) getrange(0,2);
-	switch (acttype) {
-		case ACTION_INFO: {
-				fprintf(stdout, "Tell who? ");
-				int who = getrange(1,pub->game->nplayers-1);
-				fprintf(stdout, "Number (1) or color (2)? ");
-				int type = getrange(1,2);
-				fprintf(stdout, "What (1-5 number, %d=B,%d=G,%d=R,%d=W,%d=Y,%d=*)? ", CARD_BLUE, CARD_GREEN, CARD_RED, CARD_WHITE, CARD_YELLOW, CARD_RAINBOW);
-				int idx = getrange(1, 1 == type ? 5 : 6);
-				*action = ((idx << 4) | ((type-1) << 3) | who);
-			}
-			break;
-		default:
+	actionType_t type;
+	type = (actionType_t) getrange(0,2);
+	switch (type) {
+		case ACTION_DISCARD:
 			fprintf(stdout, "Which? ");
-			*action = getrange(0,MAX_HANDSIZE-1);
-			break;
+			return returnDiscard(getrange(0,MAX_HANDSIZE-1));
+		case ACTION_PLAY:
+			fprintf(stdout, "Which? ");
+			return returnPlay(getrange(0,MAX_HANDSIZE-1));
+		case ACTION_INFO: {
+			fprintf(stdout, "Tell who? ");
+			uint8_t who = getrange(1,pub->game->nplayers-1);
+			fprintf(stdout, "Number (1) or color (2)? ");
+			uint8_t type = getrange(1,2);
+			fprintf(stdout, "What (1-5 number, %d=B,%d=G,%d=R,%d=W,%d=Y,%d=*)? ", CARD_BLUE, CARD_GREEN, CARD_RED, CARD_WHITE, CARD_YELLOW, CARD_RAINBOW);
+			uint8_t idx = getrange(1, 1 == type ? 5 : 6);
+			return returnInfo(who, type-1, idx);
+		}
+		default:
+			assert(0);
 	}
-	return acttype;
 }

@@ -4,7 +4,11 @@
 #include "hanabi.hpp"
 #include "assert.h"
 
-typedef enum { ACTION_DISCARD = 0, ACTION_PLAY = 1, ACTION_INFO = 2 } action_t;
+typedef enum { ACTION_DISCARD = 0, ACTION_PLAY = 1, ACTION_INFO = 2 } actionType_t;
+typedef struct {
+	actionType_t type;
+	uint8_t value;
+} action_t;
 #define INFO_WHO_MASK    0x07
 #define INFO_WHO_OFFSET  0
 #define INFO_TYPE_MASK   0x08
@@ -15,6 +19,28 @@ typedef enum { INFO_TYPE_NUMBER = 0, INFO_TYPE_COLOR = 1 } actionInfo_t;
 
 class Player {
 	public:
+		virtual action_t returnDiscard(uint8_t cardNum) final {
+			action_t ret = {
+				.type = ACTION_DISCARD,
+				.value = cardNum
+			};
+			return ret;
+		}
+		virtual action_t returnPlay(uint8_t cardNum) final {
+			action_t ret = {
+				.type = ACTION_PLAY,
+				.value = cardNum
+			};
+			return ret;
+		}
+		virtual action_t returnInfo(uint8_t who, bool isColor, uint8_t idx) final {
+			assert(who <= MAX_PLAYERS);
+			action_t ret = {
+				.type = ACTION_INFO,
+				.value = (uint8_t) ((idx << 4) | (((uint8_t)isColor) << 3) | who)
+			};
+			return ret;
+		}
 		// called when an action must be taken:
 		//   return discard: action is the index of the card to discard
 		//          play:    action is the index of the card to play
@@ -22,10 +48,10 @@ class Player {
 		//                     low 3 bits: player index offset to say (0 is the active player, 1 is the next, etc. 0 is invalid)
 		//                     next bit: 0=number, 1=color
 		//                     next 4 bits: the number or color index to say
-		virtual action_t turn(const hanabi_public_t *pub, char *actionValue) = 0;
+		virtual action_t turn(const hanabi_public_t *pub) = 0;
 		// called when the player is told information
 		// either the higher nibble (color), or lower nibble (number) is set in the info
-		void info(const hanabi_hand_t *hand, char info) { return; }
+		void info(const hanabi_hand_t *hand, uint8_t info) { return; }
 };
 
 #endif

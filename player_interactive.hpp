@@ -5,7 +5,7 @@
 
 class Player_interactive : public Player {
 	public:
-		action_t turn(const hanabi_public_t *pub, char *actionValue) override;
+		action_t turn(const hanabi_public_t *pub) override;
 };
 
 #endif

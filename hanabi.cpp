@@ -36,40 +36,31 @@ void fprintcard(FILE *fp, uint8_t card){
 	fputc(getColorChar(card), fp);
 	fputc(card & CARD_COLOR_KNOWN_MASK ? '\'' : ' ', fp);
 }
-void fprinthand(FILE *fp, const hanabi_hand_t &hand, uint8_t handSize) {
-	for(uint8_t i = 0; i < handSize; ++i) { fputc('\t',fp); fprintf(fp,"%d:",i); fprintcard(fp,hand.card[i]); }
+void fprinthand(FILE *fp, hanabi_hand_t const *hand, uint8_t handSize) {
+	for(uint8_t i = 0; i < handSize; ++i) { fputc('\t',fp); fprintf(fp,"%d:",i); fprintcard(fp,hand->card[i]); }
 }
 /* print the public data structure */
-void fprintpub(FILE *fp, const hanabi_public_t *pub){
+void fprintgame(FILE *fp, hanabi_game_t const *game){
 	fprintf(fp, "Piles:   B G R W Y *\n");
 	fprintf(fp, "         %d %d %d %d %d %d\n",
-		pub->game->pile[CARD_BLUE],
-		pub->game->pile[CARD_GREEN],
-		pub->game->pile[CARD_RED],
-		pub->game->pile[CARD_WHITE],
-		pub->game->pile[CARD_YELLOW],
-		pub->game->pile[CARD_RAINBOW]
+		game->pile[CARD_BLUE],
+		game->pile[CARD_GREEN],
+		game->pile[CARD_RED],
+		game->pile[CARD_WHITE],
+		game->pile[CARD_YELLOW],
+		game->pile[CARD_RAINBOW]
 	);
 	fprintf(fp, "Discard:\n");
 	for(uint8_t i = 0; i < DECK_SIZE; ++i){
-		if(pub->game->discard[i] != 0) {
+		if(game->discard[i] != 0) {
 			fputc(' ',fp);
-			fprintcard(fp,pub->game->discard[i]);
+			fprintcard(fp,game->discard[i]);
 		}
 	}
 	fprintf(fp, "\n");
-	fprintf(fp, "Cards remaining in deck:      %d\n", pub->game->ndeck);
-	fprintf(fp, "Information tokens remaining: %d\n", pub->game->ninfo);
-	fprintf(fp, "Bomb tokens acquired:         %d\n", pub->game->nbomb);
-	fprintf(fp, "Current hand:\n");
-	fprinthand(fp,pub->mine,HANDSIZE[pub->game->nplayers]);
-	fprintf(fp, "\n");
-	fprintf(fp, "Other hands:\n");
-	for(uint8_t j = 1; j < pub->game->nplayers; ++j){
-		fprintf(fp,"%d: ", j);
-		fprinthand(fp,*pub->others[j], HANDSIZE[pub->game->nplayers]);
-		fputc('\n',fp);
-	}
+	fprintf(fp, "Cards remaining in deck:      %d\n", game->ndeck);
+	fprintf(fp, "Information tokens remaining: %d\n", game->ninfo);
+	fprintf(fp, "Bomb tokens acquired:         %d\n", game->nbomb);
 }
 
 /*static int rand_int(int n){
@@ -93,13 +84,13 @@ void swapN(int n, card_t deck[DECK_SIZE]) {
 void shuffle(card_t deck[DECK_SIZE]) {
 	swapN(4*DECK_SIZE,deck);
 }
-void hanabi_game_init(int nplayers, hanabi_game_t *game, hanabi_hand_t hands[MAX_PLAYERS], card_t deck[DECK_SIZE]) {
+void hanabi_game_init(std::vector<std::unique_ptr<Player>> &players, hanabi_game_t *game, hanabi_hand_t hands[MAX_PLAYERS], card_t deck[DECK_SIZE]) {
 	static const uint8_t numcount[6] = {0,3,2,2,2,1};
 	
 	// initialize the deck
 	memset(game, 0, sizeof(hanabi_game_t));
-	game->nplayers = nplayers;
-	game->active_player = rand() % nplayers;
+	game->nplayers = players.size();
+	game->active_player = rand() % game->nplayers;
 	game->ninfo = MAX_INFO_TOKENS;
 	game->nbomb = 0;
 	game->ndeck = DECK_SIZE;
@@ -128,35 +119,25 @@ void hanabi_game_init(int nplayers, hanabi_game_t *game, hanabi_hand_t hands[MAX
 		}
 	}
 
-	for(uint8_t i = 0; i < game->nplayers; ++i) { fprintf(stdout, "%d: ", i); fprinthand(stdout, hands[i], game->nplayers); fputc('\n', stdout); }
-}
+	for(uint8_t i = 0; i < game->nplayers; ++i) { fprintf(stdout, "%d: ", i); fprinthand(stdout, &hands[i], HANDSIZE[game->nplayers]); fputc('\n', stdout); }
 
-// construct the public information from the current game state
-// currently just copies everything
-void game_make_pub(const hanabi_game_t *game, hanabi_hand_t hands[MAX_PLAYERS], hanabi_public_t *pub){
-	pub->game = game;
-	for(uint8_t i = 0; i < HANDSIZE[game->nplayers]; ++i) {
-		pub->mine.card[i]  = (hands[game->active_player].card[i] & CARD_NUMBER_KNOWN_MASK) ? (hands[game->active_player].card[i] & CARD_NUMBER_MASK) : 0;
-		pub->mine.card[i] |= (hands[game->active_player].card[i] & CARD_COLOR_KNOWN_MASK) ? (hands[game->active_player].card[i] & CARD_COLOR_MASK) : 0;
+	// Initialize Players to see other's hands
+	for(uint8_t curPlayer = 0; curPlayer < game->nplayers; ++curPlayer) {
+		uint8_t i = 0;
+		for(; i < game->nplayers; ++i){
+			players[curPlayer]->others[i] = &hands[(curPlayer + i) % game->nplayers];
+		}
+		for(; i < MAX_PLAYERS; ++i){
+			players[curPlayer]->others[i] = NULL;
+		}
 	}
-	for(uint8_t i = 0; i < game->nplayers; ++i){
-		uint8_t w = (game->active_player + i) % game->nplayers;
-		pub->others[i] = &hands[w];
-	}
-	for(uint8_t i = game->nplayers; i < MAX_PLAYERS; ++i){
-		pub->others[i] = NULL;
-	}
+
 }
 
 // advance the game by one turn
 void hanabi_game_turn(hanabi_game_t *game, hanabi_hand_t hands[MAX_PLAYERS], std::vector<std::unique_ptr<Player>> &players, card_t deck[DECK_SIZE]){
-	hanabi_public_t pub;
-	
-	// generate the public information
-	game_make_pub(game, hands, &pub);
-	
 	// Ask player to take action
-	action_t action = players[game->active_player]->turn(&pub);
+	action_t action = players[game->active_player]->turn(game);
 	switch (action.type) {
 		case ACTION_DISCARD:
 			assert(game->ninfo < 8);
@@ -210,7 +191,12 @@ void hanabi_game_turn(hanabi_game_t *game, hanabi_hand_t hands[MAX_PLAYERS], std
 					}
 				}
 			}
-			players[who]->info(&hands[who], action.value);
+			hanabi_hand_t newHand;
+			for(uint8_t i = 0; i < HANDSIZE[game->nplayers]; ++i) {
+				newHand.card[i]  = (hands[who].card[i] & CARD_NUMBER_KNOWN_MASK) ? (hands[who].card[i] & CARD_NUMBER_MASK) : 0;
+				newHand.card[i] |= (hands[who].card[i] & CARD_COLOR_KNOWN_MASK) ? (hands[who].card[i] & CARD_COLOR_MASK) : 0;
+			}
+			players[who]->info(&newHand, action.value);
 			game->ninfo--;
 		}
 		break;
@@ -236,7 +222,7 @@ int main(int argc, char *argv[]){
 	for(uint8_t i = 0; i < nplayers; ++i) players.push_back(std::make_unique<Player_interactive>());
 	
 	hanabi_game_t game;
-	hanabi_game_init(nplayers, &game, hands, deck);
+	hanabi_game_init(players, &game, hands, deck);
 	
 	// determine how many turns should occur
 	uint8_t nturns = game.ndeck + game.nplayers;

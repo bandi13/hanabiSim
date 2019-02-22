@@ -82,17 +82,10 @@ typedef struct hanabi_hand {
 	card_t card[MAX_HANDSIZE];
 } hanabi_hand_t;
 
-// This is filled in with only publicly available knowledge
-typedef struct hanabi_public {
-	hanabi_game_t const *game;
-	hanabi_hand_t mine;
-	hanabi_hand_t const *others[MAX_PLAYERS-1]; // point to all other players hands
-} hanabi_public_t;
-
 // Utilities to print state of the game
 void fprintcard(FILE *fp, int card);
-void fprinthand(FILE *fp, const hanabi_hand_t &hand, int handSize);
+void fprinthand(FILE *fp, hanabi_hand_t const *hand, uint8_t handSize);
 /* print the public data structure */
-void fprintpub(FILE *fp, const hanabi_public_t *pub);
+void fprintgame(FILE *fp, hanabi_game_t const *game);
 
 #endif

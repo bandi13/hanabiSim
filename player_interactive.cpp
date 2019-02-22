@@ -22,10 +22,10 @@ action_t Player_interactive::turn(const hanabi_public_t *pub){
 	type = (actionType_t) getrange(0,2);
 	switch (type) {
 		case ACTION_DISCARD:
-			fprintf(stdout, "Which? ");
+			fprintf(stdout, "Discard which? ");
 			return returnDiscard(getrange(0,MAX_HANDSIZE-1));
 		case ACTION_PLAY:
-			fprintf(stdout, "Which? ");
+			fprintf(stdout, "Play which? ");
 			return returnPlay(getrange(0,MAX_HANDSIZE-1));
 		case ACTION_INFO: {
 			fprintf(stdout, "Tell who? ");

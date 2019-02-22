@@ -143,6 +143,9 @@ void game_make_pub(const hanabi_game_t *game, hanabi_hand_t hands[MAX_PLAYERS], 
 		uint8_t w = (game->active_player + i) % game->nplayers;
 		pub->others[i] = &hands[w];
 	}
+	for(uint8_t i = game->nplayers; i < MAX_PLAYERS; ++i){
+		pub->others[i] = NULL;
+	}
 }
 
 // advance the game by one turn
@@ -227,7 +230,7 @@ int main(int argc, char *argv[]){
 	if(argc > 1){
 		nplayers = atoi(argv[1]);
 		if(nplayers < 3){ nplayers = 3; }
-		if(nplayers > 5){ nplayers = 5; }
+		else if(nplayers > 5){ nplayers = 5; }
 	}
 	std::vector<std::unique_ptr<Player>> players;
 	for(uint8_t i = 0; i < nplayers; ++i) players.push_back(std::make_unique<Player_interactive>());

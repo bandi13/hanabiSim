@@ -61,13 +61,7 @@ void fprintgame(FILE *fp, hanabi_game_t const &game){
 	fprintf(fp, "Bomb tokens acquired:         %d\n", game.nbomb);
 }
 
-/*static int rand_int(int n){
-	int limit = RAND_MAX - RAND_MAX % n;
-	int rnd;
-	do{ rnd = rand(); }while(rnd >= limit);
-	return rnd % n;
-}*/
-static int rand_int(int n) {
+int rand_int(int n) {
 	return (n * (long)rand()) / RAND_MAX;
 }
 void swapN(int n, card_t deck[DECK_SIZE]) {

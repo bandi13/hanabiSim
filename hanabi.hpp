@@ -7,6 +7,9 @@
 
 #define countof(arr) sizeof(arr) / sizeof(arr[0])
 
+// Generate a random number with [0,n]
+int rand_int(int n);
+
 // number of cards per player based on number of players
 static const uint8_t HANDSIZE[] = {0,0,0,5,4,4};
 #define MAX_PLAYERS (countof(HANDSIZE)-1)

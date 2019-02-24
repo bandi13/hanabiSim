@@ -100,7 +100,9 @@ void hanabi_game_init(hanabi_game_t &game, hanabi_hand_t hands[MAX_PLAYERS], std
 	// shuffle
 	shuffle(deck);
 	
-	for(uint8_t i = 0; i < game.ndeck; ++i) { fprintcard(stdout, deck[i]); fputc('\t',stdout); } fputc('\n', stdout);
+	#ifdef DEBUG 
+		for(uint8_t i = 0; i < game.ndeck; ++i) { fprintcard(stdout, deck[i]); fputc('\t',stdout); } fputc('\n', stdout);
+	#endif
 	
 	// deal
 	memset(hands,0,MAX_PLAYERS*sizeof(hanabi_hand_t));
@@ -111,7 +113,9 @@ void hanabi_game_init(hanabi_game_t &game, hanabi_hand_t hands[MAX_PLAYERS], std
 		}
 	}
 
-	for(uint8_t i = 0; i < game.nplayers; ++i) { fprintf(stdout, "%d: ", i); fprinthand(stdout, &hands[i], HANDSIZE[game.nplayers]); fputc('\n', stdout); }
+	#ifdef DEBUG 
+		for(uint8_t i = 0; i < game.nplayers; ++i) { fprintf(stdout, "%d: ", i); fprinthand(stdout, &hands[i], HANDSIZE[game.nplayers]); fputc('\n', stdout); }
+	#endif
 
 	// Initialize Players to see other's hands
 	for(uint8_t curPlayer = 0; curPlayer < game.nplayers; ++curPlayer) {
@@ -232,7 +236,9 @@ int main(int argc, char *argv[]){
 	
 		uint8_t score = 0;
 		for(uint8_t i = 0; i < countof(game.pile); ++i) score += game.pile[i];
-		fprintf(stdout,"Game over. Score = %d\n",score);
+		#ifdef DEBUG
+			fprintf(stdout,"Game over. Score = %d\n",score);
+		#endif
 		avgScore += score;
 	}
 

@@ -1,4 +1,4 @@
-CXXFLAGS=-g -Og -Wall
+CXXFLAGS=-Wall #-g -Og -DDEBUG
 all: bin/hanabi_interactive bin/hanabi_random
 
 bin/hanabi_%: player_%.cpp obj/hanabi.o

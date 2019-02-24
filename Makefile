@@ -1,5 +1,5 @@
 CXXFLAGS=-g -Og -Wall
-all: bin/hanabi_interactive
+all: bin/hanabi_interactive bin/hanabi_random
 
 bin/hanabi_%: player_%.cpp obj/hanabi.o
 	@mkdir -p $(@D)

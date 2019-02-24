@@ -154,6 +154,7 @@ void hanabi_game_turn(hanabi_game_t &game, hanabi_hand_t hands[MAX_PLAYERS], std
 			card_t card = hands[game.active_player].card[action.value];
 			if(game.pile[getColor(card)]+1 == getNumber(card)){
 				game.pile[getColor(card)]++;
+				if(getNumber(card) == 5) game.ninfo++;
 			}else{
 				game.discard[game.nDiscard++] = hands[game.active_player].card[action.value];
 				game.nbomb++;
@@ -218,7 +219,7 @@ int main(int argc, char *argv[]){
 			nRounds = atoi(argv[2]);
 		}
 	}
-	
+
 	uint avgScore = 0;
 	for(int j = 0; j < nRounds; ++j) {
 		std::vector<std::unique_ptr<Player>> players;

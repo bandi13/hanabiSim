@@ -1,7 +1,4 @@
-#include "player_interactive.hpp"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "player.hpp"
 
 uint8_t getrange(uint8_t lo, uint8_t hi){ // ask user for a number between lo and hi, inclusive. keep going until valid
 	int response = hi+1;
@@ -14,7 +11,7 @@ uint8_t getrange(uint8_t lo, uint8_t hi){ // ask user for a number between lo an
 	return response;
 }
 
-action_t Player_interactive::turn(hanabi_game_t const &game){
+action_t Player::turn(hanabi_game_t const &game){
 	fprintf(stdout, "############################################################\n");
 	fprintgame(stdout, game);
 	fprintf(stdout, "Current hand:\n");
@@ -49,3 +46,6 @@ action_t Player_interactive::turn(hanabi_game_t const &game){
 			assert(0);
 	}
 }
+
+void Player::info(hanabi_hand_t const *hand, uint8_t info) { myHand = *hand; }
+

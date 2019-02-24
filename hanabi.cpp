@@ -1,11 +1,9 @@
-#include "hanabi.hpp"
-#include "player.hpp"
-#include "player_interactive.hpp"
 #include <stdlib.h> // for rand()
 #include <string.h> // for memset()
-#include <assert.h>
 #include <vector>
 #include <memory>
+#include "hanabi.hpp"
+#include "player.hpp"
 
 cardColor_t getColor(card_t card) { return (cardColor_t) ((card & CARD_COLOR_MASK) >> CARD_COLOR_OFFSET); }
 char getColorChar(card_t card) {
@@ -210,23 +208,38 @@ void hanabi_game_turn(hanabi_game_t &game, hanabi_hand_t hands[MAX_PLAYERS], std
 
 int main(int argc, char *argv[]){
 	uint8_t nplayers = 3;
+	int nRounds = 1;
 	// note: we never "remove" cards from the deck array. We deal by just reading the next appropriate entry
-	card_t deck[DECK_SIZE];
-	hanabi_hand_t hands[MAX_PLAYERS];
 	if(argc > 1){
 		nplayers = atoi(argv[1]);
 		if(nplayers < 3){ nplayers = 3; }
 		else if(nplayers > 5){ nplayers = 5; }
+		if(argc > 2) {
+			nRounds = atoi(argv[2]);
+		}
 	}
-	std::vector<std::unique_ptr<Player>> players;
-	for(uint8_t i = 0; i < nplayers; ++i) players.push_back(std::make_unique<Player_interactive>());
 	
-	hanabi_game_t game;
-	hanabi_game_init(game, hands, players, deck);
+	uint avgScore = 0;
+	for(int j = 0; j < nRounds; ++j) {
+		std::vector<std::unique_ptr<Player>> players;
+		for(uint8_t i = 0; i < nplayers; ++i) players.push_back(std::make_unique<Player>());
+		hanabi_game_t game;
+		hanabi_hand_t hands[MAX_PLAYERS];
+		card_t deck[DECK_SIZE];
+		hanabi_game_init(game, hands, players, deck);
+		
+		// determine how many turns should occur
+		uint8_t nturns = game.ndeck + game.nplayers;
+		for(uint8_t turn = 0; turn < nturns; ++turn){
+			hanabi_game_turn(game, hands, players, deck);
+			if(game.nbomb == 3) break;
+		}
 	
-	// determine how many turns should occur
-	uint8_t nturns = game.ndeck + game.nplayers;
-	for(uint8_t turn = 0; turn < nturns; ++turn){
-		hanabi_game_turn(game, hands, players, deck);
+		uint8_t score = 0;
+		for(uint8_t i = 0; i < countof(game.pile); ++i) score += game.pile[i];
+		fprintf(stdout,"Game over. Score = %d\n",score);
+		avgScore += score;
 	}
+
+	fprintf(stdout, "Average score = %d\n", avgScore / nRounds);
 }

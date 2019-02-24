@@ -19,21 +19,21 @@ typedef enum { INFO_TYPE_NUMBER = 0, INFO_TYPE_COLOR = 1 } actionInfo_t;
 
 class Player {
 	public:
-		virtual action_t returnDiscard(uint8_t cardNum) final {
+		action_t returnDiscard(uint8_t cardNum) {
 			action_t ret = {
 				.type = ACTION_DISCARD,
 				.value = cardNum
 			};
 			return ret;
 		}
-		virtual action_t returnPlay(uint8_t cardNum) final {
+		action_t returnPlay(uint8_t cardNum) {
 			action_t ret = {
 				.type = ACTION_PLAY,
 				.value = cardNum
 			};
 			return ret;
 		}
-		virtual action_t returnInfo(uint8_t who, bool isColor, uint8_t idx) final {
+		action_t returnInfo(uint8_t who, bool isColor, uint8_t idx) {
 			assert(who <= MAX_PLAYERS);
 			action_t ret = {
 				.type = ACTION_INFO,
@@ -48,10 +48,10 @@ class Player {
 		//                     low 3 bits: player index offset to say (0 is the active player, 1 is the next, etc. 0 is invalid)
 		//                     next bit: 0=number, 1=color
 		//                     next 4 bits: the number or color index to say
-		virtual action_t turn(hanabi_game_t const &game) = 0;
+		action_t turn(hanabi_game_t const &game);
 		// called when the player is told information
 		// either the higher nibble (color), or lower nibble (number) is set in the info
-		void info(hanabi_hand_t const *hand, uint8_t info) { myHand = *hand; }
+		void info(hanabi_hand_t const *hand, uint8_t info);
 
 		// Class variables
 

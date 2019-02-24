@@ -1,4 +1,4 @@
-CXXFLAGS=-g -pg -Og -Wall
+CXXFLAGS=-g -Og -Wall
 all: bin/hanabi_interactive
 
 bin/hanabi_%: player_%.cpp obj/hanabi.o

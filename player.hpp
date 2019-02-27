@@ -49,10 +49,10 @@ class Player {
 		//                     low 3 bits: player index offset to say (0 is the active player, 1 is the next, etc. 0 is invalid)
 		//                     next bit: 0=number, 1=color
 		//                     next 4 bits: the number or color index to say
-		action_t turn(hanabi_game_t const &game);
+		virtual action_t turn(hanabi_game_t const &game) { assert(0); }
 		// called when the player is told information
 		// either the higher nibble (color), or lower nibble (number) is set in the info
-		void info(hanabi_hand_t const *hand, uint8_t info);
+		void info(hanabi_hand_t const *hand, uint8_t info) { myHand = *hand; }
 
 		// Class variables
 

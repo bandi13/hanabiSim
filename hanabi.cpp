@@ -221,7 +221,7 @@ int main(int argc, char *argv[]){
 	uint avgScore = 0;
 	for(int j = 0; j < nRounds; ++j) {
 		std::vector<std::unique_ptr<Player>> players;
-		for(uint8_t i = 0; i < nplayers; ++i) players.push_back(std::make_unique<Player>());
+		for(uint8_t i = 0; i < nplayers; ++i) players.push_back(getPlayer());
 		hanabi_game_t game;
 		hanabi_hand_t hands[MAX_PLAYERS];
 		card_t deck[DECK_SIZE];

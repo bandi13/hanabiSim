@@ -3,6 +3,7 @@
 
 #include "hanabi.hpp"
 #include "assert.h"
+#include <memory>
 
 typedef enum { ACTION_DISCARD = 0, ACTION_PLAY = 1, ACTION_INFO = 2 } actionType_t;
 typedef struct {
@@ -61,5 +62,9 @@ class Player {
 		// My cards
 		hanabi_hand_t myHand;
 };
+
+// Returns the desired player class for the main test. This could be a child class
+// of Player.
+std::unique_ptr<Player> getPlayer();
 
 #endif

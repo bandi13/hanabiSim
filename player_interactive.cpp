@@ -1,5 +1,7 @@
 #include "player.hpp"
 
+std::unique_ptr<Player> getPlayer() { return std::make_unique<Player>(); }
+
 uint8_t getrange(uint8_t lo, uint8_t hi){ // ask user for a number between lo and hi, inclusive. keep going until valid
 	int response = hi+1;
 	while(!(lo <= response && response <= hi)){
